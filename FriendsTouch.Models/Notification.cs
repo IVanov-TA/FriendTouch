@@ -19,5 +19,7 @@ namespace FriendsTouch.Models
         public string Notifier { get; set; }
 
         public string Recipient { get; set; }
+
+        public int PostId { get; set; }
     }
 }

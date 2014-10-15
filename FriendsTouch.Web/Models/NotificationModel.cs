@@ -15,12 +15,15 @@
             {
                 return n => new NotificationModel
                 {
+                    PostId = n.PostId,
                     Notifier = n.Notifier,
                     DateCreated = n.DateCreated,
                     Description = n.Description
                 };
             }
         }
+
+        public int PostId { get; set; }
 
         public string Notifier { get; set; }
 

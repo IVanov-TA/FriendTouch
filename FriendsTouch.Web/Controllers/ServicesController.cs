@@ -11,18 +11,51 @@
     [Authorize]
     public class ServicesController : BaseController
     {
+        private int Count = 10;
+
         public ServicesController(IFriendsTouchData data)
             : base(data)
         {
         }
 
+        // paging
         [HttpGet]
-        public IHttpActionResult GetPost()
+        public IHttpActionResult GetPosts(int page = 0)
         {
             var currentUser = this.User.Identity.GetUserId();
 
             var postsToReturn = this.data.Posts.All()
                                         .Where(p => p.Publisher != currentUser)
+                                        .OrderByDescending(p => p.DateCreated)
+                                        .Skip(page * Count)
+                                        .Take(Count)
+                                        .Select(PostSendModel.FromPosts);
+
+            return Ok(postsToReturn);
+        }
+
+        public IHttpActionResult GetCustomPosts(int page = 0, int count = 0)
+        {
+            var currentUser = this.User.Identity.GetUserId();
+
+            var postsToReturn = this.data.Posts.All()
+                                        .Where(p => p.Publisher != currentUser)
+                                        .OrderByDescending(p => p.DateCreated)
+                                        .Skip(page * count)
+                                        .Take(count)
+                                        .Select(PostSendModel.FromPosts);
+
+            return Ok(postsToReturn);
+        }
+
+        // get specific post
+        [HttpGet]
+        public IHttpActionResult GetPost(int id)
+        {
+            var currentUser = this.User.Identity.GetUserId();
+
+            var postsToReturn = this.data.Posts.All()
+                                        .Where(p => p.Id == id)
                                         .Select(PostSendModel.FromPosts);
 
             return Ok(postsToReturn);
@@ -37,8 +70,12 @@
                                                         .Where(n => n.Recipient == currentUser &&
                                                                     n.State == NotificationState.Unreaded)
                                                         .Select(NotificationModel.FromNotification);
+            if (notifications != null)
+            {
+                return Ok(notifications);
+            }
 
-            return Ok(notifications);
+            return null;
         }
 
         // create new post from registered user
@@ -72,11 +109,12 @@
             {
                 var newNotification = new Notification()
                 {
-                    Description = model.Description,
+                    Description = model.Description == null ? "No Description" : model.Description,
                     DateCreated = DateTime.Now,
-                    Notifier = currentUser,
+                    Notifier = this.data.Users.Find(currentUser).Email,
                     Recipient = user.Id,
-                    State = NotificationState.Unreaded
+                    State = NotificationState.Unreaded,
+                    PostId = newPost.Id
                 };
 
                 this.data.Notitfications.Add(newNotification);
@@ -89,7 +127,7 @@
 
         // create comment on Touch
         [HttpPost]
-        public IHttpActionResult PostComment(CommentAcceptModel model) 
+        public IHttpActionResult PostComment(CommentAcceptModel model)
         {
             if (!this.ModelState.IsValid)
             {
@@ -98,9 +136,9 @@
 
             var currentUser = this.User.Identity.GetUserId();
 
-            var newComment = new Comment() 
+            var newComment = new Comment()
             {
-                Author = currentUser,
+                Author = this.data.Users.Find(currentUser).Email,
                 DateCreated = DateTime.Now,
                 Text = model.Text,
                 Post = this.data.Posts.Find(model.PostId),

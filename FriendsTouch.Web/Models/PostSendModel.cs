@@ -24,6 +24,7 @@ namespace FriendsTouch.Web.Models
                     Publisher = p.Publisher,
                     Comment = p.Comments.Select(c => new CommentSendModel 
                     { 
+                        Id  = c.Id,
                         Author = c.Author,
                         DateCreated = c.DateCreated,
                         Text = c.Text
