@@ -28,12 +28,8 @@
                                         .Where(p => p.Publisher != currentUser)
                                         .OrderByDescending(p => p.DateCreated)
                                         .Skip(page * Count)
-                                        .Take(Count);
-            //.Select(PostSendModel.FromPosts);
-
-            foreach (var post in postsToReturn)
-            {
-            }
+                                        .Take(Count)
+                                        .Select(PostSendModel.FromPosts);
 
             return Ok(postsToReturn);
         }
@@ -183,8 +179,12 @@
             {
                 this.data.Posts.Delete(item);
             }
-
             this.data.SaveChanges();
+
+            foreach (var item in this.data.Users.All())
+            {
+                this.data.Users.Delete(item);
+            }
 
             this.data.SaveChanges();
 
