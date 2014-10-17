@@ -68,8 +68,20 @@
 
             var notifications = this.data.Notitfications.All()
                                                         .Where(n => n.Recipient == currentUser &&
-                                                                    n.State == NotificationState.Unreaded);
+                                                                    n.State == NotificationState.Unreaded)
+                                                                    .Select(NotificationModel.FromNotification);
+          
+           return Ok(notifications);
+            
+        }
 
+        [HttpGet]
+        public IHttpActionResult UpdateNotification() {
+            var currentUser = this.User.Identity.GetUserId();
+
+            var notifications = this.data.Notitfications.All()
+                                                        .Where(n => n.Recipient == currentUser &&
+                                                                    n.State == NotificationState.Unreaded);
             foreach (var note in notifications)
             {
                 note.State = NotificationState.Readed;
@@ -77,12 +89,7 @@
 
             this.data.SaveChanges();
 
-            if (notifications != null)
-            {
-                return Ok(notifications.Select(NotificationModel.FromNotification));
-            }
-
-            return null;
+            return Ok();
         }
 
         // create new post from registered user
