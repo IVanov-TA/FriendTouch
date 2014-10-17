@@ -28,8 +28,12 @@
                                         .Where(p => p.Publisher != currentUser)
                                         .OrderByDescending(p => p.DateCreated)
                                         .Skip(page * Count)
-                                        .Take(Count)
-                                        .Select(PostSendModel.FromPosts);
+                                        .Take(Count);
+            //.Select(PostSendModel.FromPosts);
+
+            foreach (var post in postsToReturn)
+            {
+            }
 
             return Ok(postsToReturn);
         }
@@ -68,11 +72,18 @@
 
             var notifications = this.data.Notitfications.All()
                                                         .Where(n => n.Recipient == currentUser &&
-                                                                    n.State == NotificationState.Unreaded)
-                                                        .Select(NotificationModel.FromNotification);
+                                                                    n.State == NotificationState.Unreaded);
+
+            foreach (var note in notifications)
+            {
+                note.State = NotificationState.Readed;
+            }
+
+            this.data.SaveChanges();
+
             if (notifications != null)
             {
-                return Ok(notifications);
+                return Ok(notifications.Select(NotificationModel.FromNotification));
             }
 
             return null;
@@ -146,6 +157,35 @@
             };
 
             this.data.Comments.Add(newComment);
+            this.data.SaveChanges();
+
+            return Ok();
+        }
+
+        [HttpGet]
+        public IHttpActionResult Delete()
+        {
+            foreach (var item in this.data.Comments.All())
+            {
+                this.data.Comments.Delete(item);
+            }
+
+            this.data.SaveChanges();
+
+            foreach (var item in this.data.Notitfications.All())
+            {
+                this.data.Notitfications.Delete(item);
+            }
+
+            this.data.SaveChanges();
+
+            foreach (var item in this.data.Posts.All())
+            {
+                this.data.Posts.Delete(item);
+            }
+
+            this.data.SaveChanges();
+
             this.data.SaveChanges();
 
             return Ok();

@@ -29,6 +29,8 @@
 
         public string Publisher { get; set; }
 
+        public NotificationState State { get; set; }
+
         public virtual User User { get; set; }
 
         public virtual ICollection<Comment> Comments 
